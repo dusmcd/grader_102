@@ -2,6 +2,7 @@
 import os
 import shutil
 import subprocess
+from queue import Queue
 
 def get_data_from_txt_file(file):
     with open(file) as report:
@@ -18,23 +19,24 @@ def get_data_from_txt_file(file):
     return (f"{words[1]} {words[2]}", " ".join(filename))
 
 def find_html_file(path="current"):
-    for item in os.listdir(path):
-        print(f"item = {item}")
-        if item[-4:] == "html":
-            return f"{path}/{item}"
-        if item == "__MACOSX":
-            continue
-        if os.path.isdir(f"{path}/{item}"):
-            end = find_html_file(f"{path}/{item}")
-            print(f"end = {end}")
-            if end is None:
-                continue
-            return end
+    # perform breadth-first search
+    queue = Queue()
+    queue.enqueue(path)
+
+    while queue.count > 0:
+        current = queue.dequeue()
+
+        if os.path.isdir(current):
+            for item in os.listdir(current):
+                queue.enqueue(f"{current}/{item}")
+        elif current[-4:] == "html":
+            return current
 
     return None
 
 
 def process_submissions(subs):
+    count = 0
     for key, val in subs.items():
         print(f"Currently grading: {key}")
         if not val:
@@ -58,7 +60,10 @@ def process_submissions(subs):
             print("file type not recognized. Investigate manually")
 
         input("Press enter to process next student...")
+        count += 1
         print("\n")
+
+    print(f"{count} submissions graded")
 
 def main():
     num_submissions = {}
