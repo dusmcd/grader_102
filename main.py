@@ -17,13 +17,45 @@ def get_data_from_txt_file(file):
 
     return (f"{words[1]} {words[2]}", " ".join(filename))
 
+def find_html_file(path="current"):
+    for item in os.listdir(path):
+        print(f"item = {item}")
+        if item[-4:] == "html":
+            return f"{path}/{item}"
+        if item == "__MACOSX":
+            continue
+        if os.path.isdir(f"{path}/{item}"):
+            end = find_html_file(f"{path}/{item}")
+            print(f"end = {end}")
+            if end is None:
+                continue
+            return end
+
+    return None
+
+
 def process_submissions(subs):
     for key, val in subs.items():
         print(f"Currently grading: {key}")
         if not val:
             print("There are multiple submissions for this student. Process manually\n")
+        elif val[-4:] == "html":
+            print(f"Opening {val} in Firefox...")
+            # subprocess.run(["firefox", f"submissions/{val}"])
+        elif val[-3:] == "zip":
+            if os.path.isdir("current"):
+                shutil.rmtree("current")
+            os.mkdir("current")
+            subprocess.run(["unzip", f"submissions/{val}", "-d", "current"])
+
+            html = find_html_file()
+            if html is None:
+                print("html file not found. Investigate manually")
+            
+            print(f"Opening {html} in Firefox...")
+            # subprocess.run(["firefox", html])
         else:
-            print("Opening html file in Firefox...")
+            print("file type not recognized. Investigate manually")
 
         input("Press enter to process next student...")
         print("\n")
