@@ -4,6 +4,9 @@ import shutil
 import subprocess
 from queue import Queue
 
+SEP = os.sep
+BROWSER = "chrome" if os.name == "nt" else "firefox"
+
 def get_data_from_txt_file(file):
     with open(file) as report:
         words = report.read().strip().split(" ")
@@ -26,10 +29,13 @@ def find_html_file(path="current"):
     while queue.count > 0:
         current = queue.dequeue()
 
+        if "__MACOSX" in current:
+            continue
+
         if os.path.isdir(current):
             for item in os.listdir(current):
-                queue.enqueue(f"{current}/{item}")
-        elif current[-4:] == "html":
+                queue.enqueue(f"{current}{SEP}{item}")
+        elif current[-4:].lower() == "html":
             return current
 
     return None
@@ -41,21 +47,21 @@ def process_submissions(subs):
         print(f"Currently grading: {key}")
         if not val:
             print("There are multiple submissions for this student. Process manually\n")
-        elif val[-4:] == "html":
-            print(f"Opening {val} in Firefox...")
-            # subprocess.run(["firefox", f"submissions/{val}"])
-        elif val[-3:] == "zip":
+        elif val[-4:].lower() == "html":
+            print(f"Opening {val} in browser...")
+            subprocess.run([BROWSER, f"{os.getcwd()}{SEP}submissions{SEP}{val}"])
+        elif val[-3:].lower() == "zip":
             if os.path.isdir("current"):
                 shutil.rmtree("current")
             os.mkdir("current")
-            subprocess.run(["unzip", f"submissions/{val}", "-d", "current"])
+            unzip_file(f"submissions{SEP}{val}", "current")
 
             html = find_html_file()
             if html is None:
                 print("html file not found. Investigate manually")
             else:
-                print(f"Opening {html} in Firefox...")
-                # subprocess.run(["firefox", html])
+                print(f"Opening {html} in browser...")
+                subprocess.run([BROWSER, f"{os.getcwd()}{SEP}{html}"])
         else:
             print("file type not recognized. Investigate manually")
 
@@ -65,18 +71,28 @@ def process_submissions(subs):
 
     print(f"{count} submissions graded")
 
+def unzip_file(file, dest):
+    if os.name == "nt":
+        subprocess.run([
+            "powershell",
+            "-Command",
+            f"Expand-Archive -Path '{file}' -DestinationPath '{dest}'"
+        ])
+    else:
+        subprocess.run(["unzip", file, "-d", f"{dest}"])
+
 def main():
     num_submissions = {}
     if os.path.isdir("submissions"):
         shutil.rmtree("submissions")
 
     for file in os.listdir():
-        if file[-3:] == "zip":
-            subprocess.run(["unzip", file, "-d", "submissions"])
+        if file[-3:].lower() == "zip":
+            unzip_file(file, "submissions")
 
     for file in os.listdir("submissions"):
         if file[-3:] == "txt":
-            data = get_data_from_txt_file(f"submissions/{file}")
+            data = get_data_from_txt_file(f"submissions{SEP}{file}")
             if data[0] in num_submissions:
                 num_submissions[data[0]] = False
             else:
