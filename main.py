@@ -53,9 +53,9 @@ def process_submissions(subs):
             html = find_html_file()
             if html is None:
                 print("html file not found. Investigate manually")
-            
-            print(f"Opening {html} in Firefox...")
-            # subprocess.run(["firefox", html])
+            else:
+                print(f"Opening {html} in Firefox...")
+                # subprocess.run(["firefox", html])
         else:
             print("file type not recognized. Investigate manually")
 
