@@ -21,10 +21,11 @@ def get_data_from_txt_file(file):
 
     return (f"{words[1]} {words[2]}", " ".join(filename))
 
-def find_html_file(path="current"):
+def find_html_files(path="current", num_files=1):
     # perform breadth-first search
     queue = Queue()
     queue.enqueue(path)
+    files = []
 
     while queue.count > 0:
         current = queue.dequeue()
@@ -36,12 +37,14 @@ def find_html_file(path="current"):
             for item in os.listdir(current):
                 queue.enqueue(f"{current}{SEP}{item}")
         elif current[-4:].lower() == "html":
-            return current
+            files.append(current)
+            if len(files) == num_files:
+                return files
 
-    return None
+    return files
 
 
-def process_submissions(subs):
+def process_submissions(subs, num_files):
     count = 0
     for key, val in subs.items():
         print(f"Currently grading: {key}")
@@ -56,12 +59,13 @@ def process_submissions(subs):
             os.mkdir("current")
             unzip_file(f"submissions{SEP}{val}", "current")
 
-            html = find_html_file()
-            if html is None:
+            html_files = find_html_files(num_files=num_files)
+            if len(html_files) == 0: 
                 print("html file not found. Investigate manually")
             else:
-                print(f"Opening {html} in browser...")
-                subprocess.run([BROWSER, f"{os.getcwd()}{SEP}{html}"])
+                for html in html_files:
+                    print(f"Opening {html} in browser...")
+                    subprocess.run([BROWSER, f"{os.getcwd()}{SEP}{html}"])
         else:
             print("file type not recognized. Investigate manually")
 
@@ -82,6 +86,7 @@ def unzip_file(file, dest):
         subprocess.run(["unzip", file, "-d", f"{dest}"])
 
 def main():
+    num_files = int(input("How many html files do you need to grade per student? "))
     num_submissions = {}
     if os.path.isdir("submissions"):
         shutil.rmtree("submissions")
@@ -98,7 +103,7 @@ def main():
             else:
                 num_submissions[data[0]] = data[1]
 
-    process_submissions(num_submissions)
+    process_submissions(num_submissions, num_files)
 
 if __name__ == "__main__":
     try:
