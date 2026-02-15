@@ -5,7 +5,7 @@ import subprocess
 from queue import Queue
 
 SEP = os.sep
-BROWSER = "chrome" if os.name == "nt" else "firefox"
+BROWSER = "firefox"
 
 def get_data_from_txt_file(file):
     with open(file) as report:
