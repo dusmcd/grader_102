@@ -50,7 +50,7 @@ def find_html_files(path="current", num_files=1):
     return files
 
 def get_latest_submission(subs):
-    latest_entry =  max(subs, lambda sub : sub[1])
+    latest_entry =  max(subs, key=lambda sub : sub[1])
     return latest_entry[0]
     
 
