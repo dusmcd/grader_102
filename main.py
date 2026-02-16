@@ -6,7 +6,7 @@ from queue import Queue
 from datetime import datetime
 
 SEP = os.sep
-BROWSER = "firefox"
+BROWSER = "chrome" if os.name == "nt" else "firefox"
 
 def get_data_from_txt_file(file):
     with open(file) as report:
