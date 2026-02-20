@@ -113,7 +113,6 @@ def main():
         if file[-3:] == "txt":
             (name, filename, date_str) = get_data_from_txt_file(f"submissions{SEP}{file}")
             file_datetime = datetime.strptime(date_str, "%A, %B %d, %Y %I:%M:%S %p") 
-            print(f"file_datetime: {file_datetime}")
             if name in num_submissions:
                 num_submissions[name].append((filename, file_datetime))
             else:
